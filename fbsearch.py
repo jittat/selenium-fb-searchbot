@@ -25,26 +25,25 @@ def find_post_links(url):
                     links.append(url)
             except:
                 pass
-    
+
     driver.close()
     return links
 
 
-def main():
-    if len(sys.argv)!=4:
-        print('Usage: python fbsearch.py [facebook-url] [post-url] [post-param]')
-        quit()
-    
-    url = sys.argv[1]
-    post_url = sys.argv[2]
-    post_param = sys.argv[3]
-
+def find_post(url, post_url, post_param):
     links = find_post_links(url)
     for link_url in links:
         r = requests.post(post_url,
                           data={post_param: link_url})
         print(link_url, r.status_code)
 
-        
+
+def main():
+    if len(sys.argv)!=4:
+        print('Usage: python fbsearch.py [facebook-url] [post-url] [post-param]')
+        quit()
+    find_post(*sys.argv[1:])
+
+
 if __name__ == '__main__':
     main()
