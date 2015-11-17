@@ -5,9 +5,17 @@ import sys
 import os
 import yaml
 import requests
+import logging
+import coloredlogs
 from selenium import webdriver
 
+
+logging.getLogger('requests').setLevel(logging.WARNING)
+coloredlogs.DEFAULT_LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
+coloredlogs.install(level=logging.INFO)
+
 PAGE_LOAD_WAIT = 5
+
 
 def find_post_links(url):
     links = []
@@ -37,13 +45,17 @@ def find_post(url, post_url, post_param):
     for link_url in links:
         r = requests.post(post_url,
                           data={post_param: link_url})
-        print(link_url, r.status_code)
+        if r.status_code // 100 == 2:
+            logging.info('%s %s', r.status_code, link_url)
+        else:
+            logging.warning('%s %s', r.status_code, link_url)
 
 
 def find_posts(data):
     default = data.get('default', {})
     for search in data['searches']:
         for hashtag in search.get('hashtags', []):
+            logging.info('hashtag: %s', hashtag)
             find_post('https://facebook.com/hashtag/{}'.format(hashtag),
                       search.get('post-url') or default.get('post-url'),
                       search.get('post-param') or default.get('post-param'))
