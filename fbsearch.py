@@ -61,13 +61,23 @@ def find_posts(data):
                       search.get('post-param') or default.get('post-param'))
 
 
+def get_config(path=None):
+    if path is None:
+        basedir = os.path.dirname(os.path.realpath(__file__))
+        path = os.path.join(basedir, 'config.yaml')
+    if not os.path.isfile(path):
+        return {}
+    return yaml.load(open(path))
+
+
 def main():
     if len(sys.argv) == 4:
         find_post(*sys.argv[1:])
-    elif len(sys.argv) == 1 and os.path.isfile('config.yaml'):
-        find_posts(yaml.load(open('config.yaml')))
+    elif len(sys.argv) == 1 and get_config():
+        find_posts(get_config())
     else:
-        print('Usage: python fbsearch.py [facebook-url] [post-url] [post-param]')
+        print('Usage: ./fbsearch.py  --  has config file at ./config.yaml')
+        print('Usage: ./fbsearch.py [facebook-url] [post-url] [post-param]')
     quit()
 
 
