@@ -2,6 +2,8 @@
 
 import time
 import sys
+import os
+import yaml
 import requests
 from selenium import webdriver
 
@@ -38,11 +40,23 @@ def find_post(url, post_url, post_param):
         print(link_url, r.status_code)
 
 
+def find_posts(data):
+    default = data.get('default', {})
+    for search in data['searches']:
+        for hashtag in search.get('hashtags', []):
+            find_post('https://facebook.com/hashtag/{}'.format(hashtag),
+                      search.get('post-url') or default.get('post-url'),
+                      search.get('post-param') or default.get('post-param'))
+
+
 def main():
-    if len(sys.argv)!=4:
+    if len(sys.argv) == 4:
+        find_post(*sys.argv[1:])
+    elif len(sys.argv) == 1 and os.path.isfile('config.yaml'):
+        find_posts(yaml.load(open('config.yaml')))
+    else:
         print('Usage: python fbsearch.py [facebook-url] [post-url] [post-param]')
-        quit()
-    find_post(*sys.argv[1:])
+    quit()
 
 
 if __name__ == '__main__':
