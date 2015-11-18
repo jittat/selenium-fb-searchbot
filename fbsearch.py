@@ -8,6 +8,7 @@ import requests
 import logging
 import coloredlogs
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
 
 logging.getLogger('requests').setLevel(logging.WARNING)
@@ -17,9 +18,18 @@ coloredlogs.install(level=logging.INFO)
 PAGE_LOAD_WAIT = 5
 
 
-def find_post_links(url):
+def login_facebook(driver, username, password):
+    driver.get('https://facebook.com')
+    time.sleep(PAGE_LOAD_WAIT)
+    driver.find_element_by_id("email").send_keys(username)
+    driver.find_element_by_id("pass").send_keys(password, Keys.RETURN)
+
+
+def find_post_links(url, driver=None):
     links = []
-    driver = webdriver.Chrome()
+    new_driver = driver is None
+    if new_driver:
+        driver = webdriver.Chrome()
     driver.get(url)
 
     #print('waiting...')
@@ -36,12 +46,13 @@ def find_post_links(url):
             except:
                 pass
 
-    driver.close()
+    if new_driver:
+        driver.close()
     return links
 
 
-def find_post(url, post_url, post_param):
-    links = find_post_links(url)
+def find_post(url, post_url, post_param, driver=None):
+    links = find_post_links(url, driver)
     for link_url in links:
         r = requests.post(post_url,
                           data={post_param: link_url})
@@ -53,12 +64,20 @@ def find_post(url, post_url, post_param):
 
 def find_posts(data):
     default = data.get('default', {})
+    login = data.get('login', {})
+    driver = None
+    if all(field in login for field in ['username', 'password']):
+        driver = webdriver.Chrome()
+        login_facebook(driver, login['username'], login['password'])
     for search in data['searches']:
         for hashtag in search.get('hashtags', []):
             logging.info('hashtag: %s', hashtag)
             find_post('https://facebook.com/hashtag/{}'.format(hashtag),
                       search.get('post-url') or default.get('post-url'),
-                      search.get('post-param') or default.get('post-param'))
+                      search.get('post-param') or default.get('post-param'),
+                      driver)
+    if driver is not None:
+        driver.close()
 
 
 def get_config(path=None):

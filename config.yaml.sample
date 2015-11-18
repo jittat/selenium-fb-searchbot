@@ -1,3 +1,6 @@
+login:
+  username: "swagger"
+  password: "9aws-gaw$"
 default:
   post-url: "192.0.2.0"
   post-param: "post[url]"
